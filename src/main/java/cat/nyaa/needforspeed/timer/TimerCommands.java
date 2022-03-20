@@ -2,14 +2,12 @@ package cat.nyaa.needforspeed.timer;
 
 import cat.nyaa.needforspeed.I18n;
 import cat.nyaa.nyaacore.LanguageRepository;
-import cat.nyaa.nyaacore.Message;
 import cat.nyaa.nyaacore.cmdreceiver.Arguments;
 import cat.nyaa.nyaacore.cmdreceiver.CommandReceiver;
 import cat.nyaa.nyaacore.cmdreceiver.SubCommand;
 import cat.nyaa.needforspeed.NeedForSpeed;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.regions.Region;
-import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -232,24 +230,16 @@ public class TimerCommands extends CommandReceiver {
         }
     }
 
+
     @SubCommand(value = "list", permission = "nu.createtimer")
     public void commandList(CommandSender sender, Arguments args) {
         HashMap<String, Timer> timers = plugin.getTimerConfig().timers;
         msg(sender, "user.timer.list", timers.size());
         for (Timer timer : timers.values()) {
-
-            String pointBroadcast = TimerLang.getInstance().pointBroadcast.produce(Pair.of("name", timer.getName()));
-            String finishBroadcast = TimerLang.getInstance().finishBroadcast.produce(Pair.of("name", timer.getName()));
-            String status = TimerLang.getInstance().status.produce(
-                    Pair.of("status", timer.isEnabled()? "enabled": "disabled")
-            );
-            new Message(TimerLang.getInstance().info.produce(
-                    Pair.of("timer", timer.getName()),
-                    Pair.of("checkPoint", timer.getCheckpointList().size()),
-                    Pair.of("status", status),
-                    Pair.of("pointBroadcast", pointBroadcast),
-                    Pair.of("finishBroadcast", finishBroadcast)
-                    )).send(sender);
+            String point_broadcast = I18n.format("user.info." + (timer.point_broadcast ? "enabled" : "disabled"));
+            String finish_broadcast = I18n.format("user.info." + (timer.finish_broadcast ? "enabled" : "disabled"));
+            String status = I18n.format("user.info." + (timer.isEnabled() ? "enabled" : "disabled"));
+            msg(sender, "user.timer.timer_info", timer.getName(), timer.getCheckpointList().size(), status, point_broadcast, finish_broadcast);
         }
     }
 }
