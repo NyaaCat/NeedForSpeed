@@ -1,0 +1,15 @@
+name: NeedForSpeed
+version: 1.0
+main: cat.nyaa.needforspeed.NeedForSpeed
+api-version: 1.18
+authors: [ metadevs ]
+depend:
+  - WorldEdit
+  - NyaaCore
+description: Need for speed for pfncci
+permissions:
+  nfs.admin:
+    default: op
+commands:
+  nfs:
+

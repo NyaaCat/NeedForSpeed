@@ -1,0 +1,50 @@
+messages:
+  no-permission: "You do not have permission to do that."
+  track-created: "Track created."
+  track-deleted: "Track deleted."
+  track-not-exists: "Track does not exist."
+  invalid-checkpoint-id: "Invalid track ID."
+  incomplete-selection: "Incomplete selection."
+  checkpoint-added: "Checkpoint added."
+  checkpoint-reached: "&7[&a%checkpoint%&7] &a%time%. "
+  wrong-checkpoint: "Wrong checkpoint. You must pass to %next_checkpoint%."
+  checkpoint-deleted: "Checkpoint deleted."
+  track-not-enabled: "Track is not enabled."
+  finished-track: "%player% have finished the track in %time%"
+  race-started: "Started race %track%"
+  checkpoint-list:
+    title: "Checkpoints"
+    entry: "&7[&c%id%&7] world: %world% %min% %max% " # placeholders: %id% %world% %min% %max%
+user:
+  info:
+    command_complete: 命令已执行！
+    not_player: 只有玩家可执行此操作
+    no_item_hand: 主手中没有物品
+    no_item_offhand: 副手中没有物品
+    enabled: 已启用
+    disabled: 已禁用
+    reload: 插件已重载
+  timer:
+    timer_create: 创建计时器成功
+    timer_remove: 删除计时器 %s 成功
+    timer_exist: 计时器 %s 已存在
+    timer_not_found: 未找到计时器 %s
+    timer_enable: 计时器 %s 已启用
+    timer_disable: 计时器 %s 已禁用
+    timer_info: '计时器: %s, 检查点: %d, 状态: %s, 是否广播检查点: %s, 是否广播结束点: %s'
+    checkpoint_broadcast_enable: 检查点广播已启用
+    checkpoint_broadcast_disable: 检查点广播已关闭
+    finishpoint_broadcast_enable: 结束点广播已启用
+    finishpoint_broadcast_disable: 结束点广播已关闭
+    checkpoint_remove: 检查点 %s 已移除
+    checkpoint_not_found: 未找到检查点 %s
+    checkpoint_broadcast: '[%s] 玩家 %s 已通过检查点 %d，用时 [ %d 分 %.2f 秒 ] '
+    checkpoint_info: 检查点 %d 位于世界 %s 的 (%d, %d, %d) (%d, %d, %d)
+    select: 请先选择一个检查点范围
+    checkpoint_conflict: 所选范围与检查点 %d 冲突
+    start: '[%s] 计时开始'
+    invalid: '[%s] 你必须先通过检查点 %d'
+    finish_0: 玩家 %s 在 %s 的比赛结果：
+    finish_1: 到达检查点 %d 用时 [ %d 分 %.2f 秒 ]
+    finish_2: 总计用时为 [ %d 分 %.2f 秒 ]
+    list: 已定义的计时器：%d

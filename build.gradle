@@ -10,7 +10,19 @@
 plugins {
     id 'java'
 }
-String minecraftVersion="1.18.1"
+ext.minecraftVersion = "1.18.2"
+
+ext.pluginNameUpper = "NeedForSpeed"
+ext.pluginNameLower = ext.pluginNameUpper.toLowerCase()
+ext.majorVersion = 1
+ext.minorVersion = 0
+
+// Suppiled by Jenkins
+ext.buildNumber = System.env.BUILD_NUMBER == null ? "x"                : "$System.env.BUILD_NUMBER"
+ext.mavenDirectory = System.env.MAVEN_DIR == null ? "$projectDir/repo" : "$System.env.MAVEN_DIR"
+ext.jdDirectory = System.env.JAVADOCS_DIR == null ? null               : "$System.env.JAVADOCS_DIR"
+
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -31,23 +43,69 @@ dependencies {
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:30.1.1-jre'
     implementation 'cat.nyaa:nyaacore:9.0-SNAPSHOT'
-    implementation "net.kyori:adventure-api:4.9.3"
-    implementation "net.kyori:adventure-text-serializer-legacy:4.9.3"
     implementation "com.sk89q.worldedit:worldedit-bukkit:7.3.0-SNAPSHOT"
-    implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
-    implementation "net.kyori:adventure-platform-bukkit:4.0.1"
     implementation "io.papermc.paper:paper-api:$minecraftVersion-R0.1-SNAPSHOT"
-
+    implementation 'land.melon.lab:SimpleLanguageLoader:1.8.3'
 
     implementation 'org.jetbrains:annotations:20.1.0'
 }
 
-testing {
-    suites {
-        // Configure the built-in test suite
-        test {
-            // Use JUnit Jupiter test framework
-            useJUnitJupiter('5.8.1')
+
+// source file modification (modify version string)
+processResources {
+    filesMatching("**/plugin.yml") {
+        expand 'version': project.version
+    }
+}
+
+// source file jar
+task sourcesJar(type: Jar) {
+    archiveClassifier.set("sources")
+    from sourceSets.main.allSource
+}
+
+// javadoc jar
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set("javadoc")
+    from javadoc.destinationDir
+}
+
+// compile options
+compileJava {
+    options.encoding("UTF-8")
+}
+
+javadoc {
+    options {
+        locale 'en_US'
+        encoding 'UTF-8'
+        docEncoding 'UTF-8'
+
+        if (JavaVersion.current() > JavaVersion.VERSION_1_9) {
+            addBooleanOption('html5', true)
+        }
+    }
+
+
+
+}
+
+// maven publish
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            group      project.group
+            artifactId pluginNameLower
+            version    "$majorVersion.$minorVersion-SNAPSHOT"
+
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+    repositories {
+        maven {
+            url mavenDirectory
         }
     }
 }
