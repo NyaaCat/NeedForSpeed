@@ -9,6 +9,7 @@
 
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 ext.minecraftVersion = "1.18.2"
 
@@ -21,6 +22,10 @@ ext.minorVersion = 0
 ext.buildNumber = System.env.BUILD_NUMBER == null ? "x"                : "$System.env.BUILD_NUMBER"
 ext.mavenDirectory = System.env.MAVEN_DIR == null ? "$projectDir/repo" : "$System.env.MAVEN_DIR"
 ext.jdDirectory = System.env.JAVADOCS_DIR == null ? null               : "$System.env.JAVADOCS_DIR"
+
+group = "cat.nyaa"
+archivesBaseName = "${pluginNameUpper}-mc$minecraftVersion"
+version = "$majorVersion.$minorVersion.$buildNumber"
 
 
 repositories {
@@ -85,9 +90,6 @@ javadoc {
             addBooleanOption('html5', true)
         }
     }
-
-
-
 }
 
 // maven publish
