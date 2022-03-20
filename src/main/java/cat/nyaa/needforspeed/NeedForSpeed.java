@@ -71,4 +71,7 @@ public final class NeedForSpeed extends JavaPlugin {
         // Plugin shutdown logic
     }
 
+    public void reload() {
+        load();
+    }
 }

@@ -28,7 +28,7 @@ public class TimerCommands extends CommandReceiver {
     }
 
 
-    @SubCommand(value = "create", permission = "nu.createtimer")
+    @SubCommand(value = "create", permission = "nfs.admin")
     public void commandCreateTimer(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.create.usage");
@@ -43,7 +43,7 @@ public class TimerCommands extends CommandReceiver {
         }
     }
 
-    @SubCommand(value = "remove", permission = "nu.createtimer")
+    @SubCommand(value = "remove", permission = "nfs.admin")
     public void commandRemoveTimer(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.remove.usage");
@@ -59,7 +59,7 @@ public class TimerCommands extends CommandReceiver {
         }
     }
 
-    @SubCommand(value = "enable", permission = "nu.createtimer")
+    @SubCommand(value = "enable", permission = "nfs.admin")
     public void commandEnableTimer(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.enable.usage");
@@ -77,7 +77,7 @@ public class TimerCommands extends CommandReceiver {
         }
     }
 
-    @SubCommand(value = "disable", permission = "nu.createtimer")
+    @SubCommand(value = "disable", permission = "nfs.admin")
     public void commandDisableTimer(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.disable.usage");
@@ -95,7 +95,7 @@ public class TimerCommands extends CommandReceiver {
         }
     }
 
-    @SubCommand(value = "addcheckpoint", permission = "nu.createtimer")
+    @SubCommand(value = "addcheckpoint", permission = "nfs.admin")
     public void commandAddCheckpoint(CommandSender sender, Arguments args) {
         if (args.length() < 3) {
             msg(sender, "manual.timer.addcheckpoint.usage");
@@ -145,7 +145,7 @@ public class TimerCommands extends CommandReceiver {
         plugin.getTimerConfig().save();
     }
 
-    @SubCommand(value = "removecheckpoint", permission = "nu.createtimer")
+    @SubCommand(value = "removecheckpoint", permission = "nfs.admin")
     public void commandRemoveCheckpoint(CommandSender sender, Arguments args) {
         if (args.length() != 4) {
             msg(sender, "manual.timer.removecheckpoint.usage");
@@ -167,7 +167,7 @@ public class TimerCommands extends CommandReceiver {
         }
     }
 
-    @SubCommand(value = "togglepointbroadcast", permission = "nu.createtimer")
+    @SubCommand(value = "togglepointbroadcast", permission = "nfs.admin")
     public void commandTogglePointBroadcast(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.togglepointbroadcast.usage");
@@ -187,7 +187,7 @@ public class TimerCommands extends CommandReceiver {
         plugin.getTimerConfig().save();
     }
 
-    @SubCommand(value = "togglefinishbroadcast", permission = "nu.createtimer")
+    @SubCommand(value = "togglefinishbroadcast", permission = "nfs.admin")
     public void commandFinishPointBroadcast(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.togglefinishbroadcast.usage");
@@ -207,7 +207,7 @@ public class TimerCommands extends CommandReceiver {
         plugin.getTimerConfig().save();
     }
 
-    @SubCommand(value = "info", permission = "nu.createtimer")
+    @SubCommand(value = "info", permission = "nfs.admin")
     public void commandInfo(CommandSender sender, Arguments args) {
         if (args.length() != 3) {
             msg(sender, "manual.timer.info.usage");
@@ -231,7 +231,7 @@ public class TimerCommands extends CommandReceiver {
     }
 
 
-    @SubCommand(value = "list", permission = "nu.createtimer")
+    @SubCommand(value = "list", permission = "nfs.admin")
     public void commandList(CommandSender sender, Arguments args) {
         HashMap<String, Timer> timers = plugin.getTimerConfig().timers;
         msg(sender, "user.timer.list", timers.size());
@@ -241,5 +241,10 @@ public class TimerCommands extends CommandReceiver {
             String status = I18n.format("user.info." + (timer.isEnabled() ? "enabled" : "disabled"));
             msg(sender, "user.timer.timer_info", timer.getName(), timer.getCheckpointList().size(), status, point_broadcast, finish_broadcast);
         }
+    }
+
+    @SubCommand(value = "reload", permission = "nfs.admin")
+    public void commandReload(CommandSender sender, Arguments args) {
+        plugin.reload();
     }
 }

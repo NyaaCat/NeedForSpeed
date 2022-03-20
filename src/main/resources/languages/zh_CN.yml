@@ -1,20 +1,3 @@
-messages:
-  no-permission: "You do not have permission to do that."
-  track-created: "Track created."
-  track-deleted: "Track deleted."
-  track-not-exists: "Track does not exist."
-  invalid-checkpoint-id: "Invalid track ID."
-  incomplete-selection: "Incomplete selection."
-  checkpoint-added: "Checkpoint added."
-  checkpoint-reached: "&7[&a%checkpoint%&7] &a%time%. "
-  wrong-checkpoint: "Wrong checkpoint. You must pass to %next_checkpoint%."
-  checkpoint-deleted: "Checkpoint deleted."
-  track-not-enabled: "Track is not enabled."
-  finished-track: "%player% have finished the track in %time%"
-  race-started: "Started race %track%"
-  checkpoint-list:
-    title: "Checkpoints"
-    entry: "&7[&c%id%&7] world: %world% %min% %max% " # placeholders: %id% %world% %min% %max%
 user:
   info:
     command_complete: 命令已执行！
@@ -48,3 +31,40 @@ user:
     finish_1: 到达检查点 %d 用时 [ %d 分 %.2f 秒 ]
     finish_2: 总计用时为 [ %d 分 %.2f 秒 ]
     list: 已定义的计时器：%d
+manual:
+  timer:
+    create:
+      description: 创建计时器
+      usage: /nu timer create [计时器名称]
+    remove:
+      description: 移除计时器
+      usage: /nu timer remove [计时器名称]
+    enable:
+      description: 启用计时器
+      usage: /nu timer enable [计时器名称]
+    disable:
+      description: 禁用计时器
+      usage: /nu timer disable [计时器名称]
+    togglepointbroadcast:
+      description: 切换某计时器是否广播检查点
+      usage: /nu timer togglepointbroadcast [timer name]
+    togglefinishbroadcast:
+      description: 切换某计时器是否广播完成点
+      usage: /nu timer togglepointbroadcast [timer name]
+    addcheckpoint:
+      description: 向计时器添加检查点
+      usage: /nu timer addcheckpoint [计时器名称] 或 /nu timer addcheckpoint [计时器名称] [检查点ID]
+    removecheckpoint:
+      description: 从计时器中移除检查点
+      usage: /nu timer addcheckpoint [计时器名称] [检查点ID]
+    info:
+      description: 显示计时器信息
+      usage: /nu timer info [计时器名称]
+    list:
+      description: 列出所有计时器
+      usage: /nu timer list
+    help:
+      description: 显示帮助信息
+      usage: /nu timer help
+    description: 建立计时器
+    usage: /nu timer help
