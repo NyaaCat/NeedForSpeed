@@ -1,28 +1,28 @@
 package cat.nyaa.nfs.dataclasses;
 
 public class Point {
-    int x;
-    int y;
-    int z;
+    double x;
+    double y;
+    double z;
 
     public Point() {
     }
 
-    public Point(int x, int y, int z) {
+    public Point(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
 
-    public int getX() {
+    public double getX() {
         return x;
     }
 
-    public int getY() {
+    public double getY() {
         return y;
     }
 
-    public int getZ() {
+    public double getZ() {
         return z;
     }
 }

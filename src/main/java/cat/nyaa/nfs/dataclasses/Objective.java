@@ -7,20 +7,20 @@ public class Objective {
     String name;
     UUID uniqueID;
     boolean enabled;
-    List<CheckArea> checkAreas;
+    List<CheckRange> checkRanges;
 
-    public Objective(UUID uniqueID, String name, List<CheckArea> checkAreas) {
+    public Objective(UUID uniqueID, String name, List<CheckRange> checkRanges) {
         this.name = name;
         this.uniqueID = uniqueID;
         enabled = true;
-        this.checkAreas = checkAreas;
+        this.checkRanges = checkRanges;
     }
 
-    public Objective(UUID uniqueID, String name, boolean enabled, List<CheckArea> checkAreas) {
+    public Objective(UUID uniqueID, String name, boolean enabled, List<CheckRange> checkRanges) {
         this.name = name;
         this.uniqueID = uniqueID;
         this.enabled = enabled;
-        this.checkAreas = checkAreas;
+        this.checkRanges = checkRanges;
     }
 
     public Objective() {
@@ -34,41 +34,41 @@ public class Objective {
         return name;
     }
 
-    public List<CheckArea> getCheckAreas() {
-        return checkAreas;
+    public List<CheckRange> getCheckAreas() {
+        return checkRanges;
     }
 
-    public void addCheckArea(int index, CheckArea checkArea) {
-        checkAreas.add(index, checkArea);
+    public void addCheck(int index, CheckRange checkRange) {
+        checkRanges.add(index, checkRange);
     }
 
     public boolean isEnabled() {
         return enabled;
     }
 
-    public void addCheckArea(CheckArea checkArea) {
-        checkAreas.add(checkArea);
+    public void addCheck(CheckRange checkRange) {
+        checkRanges.add(checkRange);
     }
 
-    public boolean removeLastArea() {
-        if (checkAreas.isEmpty())
+    public boolean removeLastCheck() {
+        if (checkRanges.isEmpty())
             return false;
-        return checkAreas.remove(checkAreas.size() - 1) != null;
+        return checkRanges.removeLast() != null;
     }
 
-    public boolean removeCheckArea(int index) {
-        return checkAreas.remove(index) != null;
+    public boolean removeCheck(int index) {
+        return checkRanges.remove(index) != null;
     }
 
-    public CheckArea getCheckArea(int index) {
-        return checkAreas.get(index);
+    public CheckRange getCheck(int index) {
+        return checkRanges.get(index);
     }
 
-    public void replaceCheckArea(int index, CheckArea checkArea) {
-        checkAreas.set(index, checkArea);
+    public void replaceCheck(int index, CheckRange checkRange) {
+        checkRanges.set(index, checkRange);
     }
 
     public int getSize() {
-        return checkAreas.size();
+        return checkRanges.size();
     }
 }

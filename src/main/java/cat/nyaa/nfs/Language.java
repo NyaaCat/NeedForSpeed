@@ -38,4 +38,6 @@ public class Language {
     );
     //⭐
     public Text nameUsed = Text.of("&7name &c{name}&7 is used, please change another one.");
+    public Text failedToLoadPersonalBestOn = Text.of("&cFailed to load personal best on {objective}&c, new record notification disabled");
+    public Text failedToLogRecord = Text.of("&6Failed to log record, but you can still make a screenshot!");
 }

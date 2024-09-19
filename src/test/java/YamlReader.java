@@ -1,5 +1,5 @@
-import cat.nyaa.nfs.dataclasses.CheckArea;
-import cat.nyaa.nfs.dataclasses.CheckAreaGroup;
+import cat.nyaa.nfs.dataclasses.CheckRange;
+import cat.nyaa.nfs.dataclasses.Objective;
 import cat.nyaa.nfs.dataclasses.Point;
 import com.google.gson.GsonBuilder;
 import org.yaml.snakeyaml.Yaml;
@@ -56,7 +56,7 @@ public class YamlReader {
                 var name = (String) records.get("name");
                 var enabled = (Boolean)records.get("enable");
                 var checkpoints = (Map)records.get("checkpoint");
-                var checkAreaList = new ArrayList<CheckArea>();
+                var checkAreaList = new ArrayList<CheckRange>();
 
                 for(int i =1;checkpoints.containsKey(String.valueOf(i));i++){
                     var cp = (Map)checkpoints.get(String.valueOf(i));
@@ -68,7 +68,7 @@ public class YamlReader {
                     var y2 = (int)cp.get("min_y");
                     var z2 = (int)cp.get("min_z");
                     checkAreaList.add(
-                            new CheckArea(world,
+                            new CheckRange(world,
                                     new Point(x1,y1,z1),
                                     new Point(x2,y2,z2)
                                     )
@@ -76,8 +76,8 @@ public class YamlReader {
                 }
 
                 var uniqueID = UUID.randomUUID();
-                var checkAreaGroup = new CheckAreaGroup(uniqueID,name,checkAreaList);
-                var fos = new FileOutputStream(new File(jsonBase,uniqueID+".json"+(enabled ? "" : ".disabled")),false);
+                var checkAreaGroup = new Objective(uniqueID, name,enabled, checkAreaList);
+                var fos = new FileOutputStream(new File(jsonBase, name + ".json"), false);
                 fos.write(gson.toJson(checkAreaGroup).getBytes(StandardCharsets.UTF_8));
                 fos.flush();
                 fos.close();
