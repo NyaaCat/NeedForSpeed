@@ -3,18 +3,27 @@ package cat.nyaa.nfs.dataclasses;
 import java.util.List;
 import java.util.UUID;
 
-public class CheckAreaGroup {
-    UUID uniqueID;
+public class Objective {
     String name;
+    UUID uniqueID;
+    boolean enabled;
     List<CheckArea> checkAreas;
 
-    public CheckAreaGroup(UUID uniqueID, String name, List<CheckArea> checkAreas) {
-        this.uniqueID = uniqueID;
+    public Objective(UUID uniqueID, String name, List<CheckArea> checkAreas) {
         this.name = name;
+        this.uniqueID = uniqueID;
+        enabled = true;
         this.checkAreas = checkAreas;
     }
 
-    public CheckAreaGroup() {
+    public Objective(UUID uniqueID, String name, boolean enabled, List<CheckArea> checkAreas) {
+        this.name = name;
+        this.uniqueID = uniqueID;
+        this.enabled = enabled;
+        this.checkAreas = checkAreas;
+    }
+
+    public Objective() {
     }
 
     public UUID getUniqueID() {
@@ -31,6 +40,10 @@ public class CheckAreaGroup {
 
     public void addCheckArea(int index, CheckArea checkArea) {
         checkAreas.add(index, checkArea);
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public void addCheckArea(CheckArea checkArea) {

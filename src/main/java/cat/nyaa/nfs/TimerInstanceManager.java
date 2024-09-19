@@ -1,11 +1,9 @@
 package cat.nyaa.nfs;
 
-import cat.nyaa.nfs.dataclasses.CheckAreaGroup;
+import cat.nyaa.nfs.dataclasses.Objective;
 import cat.nyaa.nfs.dataclasses.TimerRecords;
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import land.melon.lab.simplelanguageloader.SimpleLanguageLoader;
 import org.bukkit.Bukkit;
 
 import java.io.*;
@@ -16,156 +14,131 @@ public class TimerInstanceManager {
     private final File timerDataFolder;
     private final File timerRecordFolder;
     private final Gson gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    private final Map<String, UUID> nameUniqueIDMap = new HashMap<>();
-    private final Map<UUID, CheckAreaGroup> uniqueIDTimerPointGroupMap = new HashMap<>();
-    private final Map<UUID, TimerInstance> enabledMap = new HashMap<>();
+    private final Map<String, UUID> loadedNameUniqueIDMap = new HashMap<>();
+    private final Map<UUID, Objective> loadedUniqueIDObjectivesMap = new HashMap<>();
+    private final Map<UUID, TimerInstance> enabledInstanceMap = new HashMap<>();
     private final PlayerRecordManager playerRecordManager;
-    private final File enabledCheckAreaGroupsFile;
 
 
     public TimerInstanceManager(File pluginDataFolder, PlayerRecordManager playerRecordManager) throws IOException {
-        this.timerDataFolder = new File(pluginDataFolder, "checkAreaGroups");
+        this.timerDataFolder = new File(pluginDataFolder, "objectives");
         this.timerRecordFolder = new File(pluginDataFolder, "groupRecords");
         this.playerRecordManager = playerRecordManager;
         timerDataFolder.mkdir();
         timerRecordFolder.mkdir();
-        enabledCheckAreaGroupsFile = new File(pluginDataFolder, "enabled.json");
-
-        var enabledList = new SimpleLanguageLoader().loadOrInitialize(enabledCheckAreaGroupsFile, new TypeToken<ArrayList<UUID>>() {
-        }.getType(), () -> new ArrayList<UUID>());
 
         Arrays.stream(Objects.requireNonNull(timerDataFolder.listFiles())).filter(File::isFile).map(file -> {
             try {
-                return gson.fromJson(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8), CheckAreaGroup.class);
+                return gson.fromJson(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8), Objective.class);
             } catch (FileNotFoundException e) {
                 throw new RuntimeException(e);
             }
-        }).toList().forEach(checkAreaGroup -> {
+        }).toList().forEach(objective -> {
                     try {
-                        loadCheckAreaGroup(checkAreaGroup);
+                        loadCheckAreaGroup(objective);
                     } catch (FileNotFoundException e) {
                         throw new RuntimeException(e);
                     }
                 }
         );
 
-        enabledList.forEach(uuid -> {
-            if (!uniqueIDTimerPointGroupMap.containsKey(uuid)) {
-                Bukkit.getLogger().warning("check area config " + uuid.toString() + ".json doesn't exist!");
-            } else {
-                try {
-                    enableCheckAreaGroup(uniqueIDTimerPointGroupMap.get(uuid));
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        Bukkit.getScheduler().runTaskTimer(NeedForSpeed.instance, () -> enabledMap.values().forEach(timerInstance -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(NeedForSpeed.instance, () -> enabledInstanceMap.values().forEach(timerInstance -> {
             try {
-                saveTimerRecord(timerInstance.getTimerRecords(), timerInstance.getCheckAreaGroup().getUniqueID());
+                saveTimerRecord(timerInstance.getTimerRecords(), timerInstance.getObjective().getUniqueID());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }), 20 * 600L, 20 * 600L);
     }
 
-    private void loadCheckAreaGroup(CheckAreaGroup checkAreaGroup) throws FileNotFoundException {
-        nameUniqueIDMap.put(checkAreaGroup.getName(), checkAreaGroup.getUniqueID());
-        uniqueIDTimerPointGroupMap.put(checkAreaGroup.getUniqueID(), checkAreaGroup);
+    private void loadCheckAreaGroup(Objective objective) throws FileNotFoundException {
+        loadedNameUniqueIDMap.put(objective.getName(), objective.getUniqueID());
+        loadedUniqueIDObjectivesMap.put(objective.getUniqueID(), objective);
+        if(objective.isEnabled()){
+            enableCheckAreaGroup(objective);
+        }
     }
 
-    public void enableCheckAreaGroup(CheckAreaGroup checkAreaGroup) throws FileNotFoundException {
-        var instance = new TimerInstance(checkAreaGroup, loadTimerRecord(checkAreaGroup.getUniqueID()), playerRecordManager);
+    public void enableCheckAreaGroup(Objective objective) throws FileNotFoundException {
+        var instance = new TimerInstance(objective, loadTimerRecord(objective.getUniqueID()), playerRecordManager);
         Bukkit.getServer().getPluginManager().registerEvents(instance, NeedForSpeed.instance);
-        enabledMap.put(checkAreaGroup.getUniqueID(), instance);
+        enabledInstanceMap.put(objective.getUniqueID(), instance);
     }
 
     public boolean deleteCheckAreaGroup(String name) {
-        if (!nameUniqueIDMap.containsKey(name))
+        if (!loadedNameUniqueIDMap.containsKey(name))
             return false;
         else {
-            var uniqueID = nameUniqueIDMap.get(name);
-            if (enabledMap.containsKey(uniqueID) || !uniqueIDTimerPointGroupMap.containsKey(uniqueID))
+            var uniqueID = loadedNameUniqueIDMap.get(name);
+            if (enabledInstanceMap.containsKey(uniqueID) || !loadedUniqueIDObjectivesMap.containsKey(uniqueID))
                 return false;
-            nameUniqueIDMap.remove(name);
-            uniqueIDTimerPointGroupMap.remove(uniqueID);
+            loadedNameUniqueIDMap.remove(name);
+            loadedUniqueIDObjectivesMap.remove(uniqueID);
             return true;
         }
     }
 
     public boolean disableCheckAreaGroup(String name) {
-        if (!nameUniqueIDMap.containsKey(name))
+        if (!loadedNameUniqueIDMap.containsKey(name))
             return false;
         else
-            return disableCheckAreaGroup(nameUniqueIDMap.get(name));
+            return disableCheckAreaGroup(loadedNameUniqueIDMap.get(name));
     }
 
     public boolean disableCheckAreaGroup(UUID uniqueID) {
-        if (!enabledMap.containsKey(uniqueID))
+        if (!enabledInstanceMap.containsKey(uniqueID))
             return false;
-        var timerInstance = enabledMap.get(uniqueID);
+        var timerInstance = enabledInstanceMap.get(uniqueID);
         try {
-            saveTimerRecord(timerInstance.getTimerRecords(), timerInstance.getCheckAreaGroup().getUniqueID());
+            saveTimerRecord(timerInstance.getTimerRecords(), timerInstance.getObjective().getUniqueID());
             timerInstance.disable();
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
-        enabledMap.remove(uniqueID);
+        enabledInstanceMap.remove(uniqueID);
         return true;
     }
 
-    public boolean createNewCheckAreaGroup(String name) throws FileNotFoundException {
-        if (nameUniqueIDMap.containsKey(name)) return false;
+    public boolean createNewObjective(String name) throws FileNotFoundException {
+        if (loadedNameUniqueIDMap.containsKey(name)) return false;
         else {
-            loadCheckAreaGroup(new CheckAreaGroup(UUID.randomUUID(), name, new ArrayList<>()));
+            loadCheckAreaGroup(new Objective(UUID.randomUUID(), name, new ArrayList<>()));
             return true;
         }
     }
 
     public TimerInstance getTimerInstance(String name) {
-        return nameUniqueIDMap.get(name) == null ? null : getTimerInstance(nameUniqueIDMap.get(name));
+        return loadedNameUniqueIDMap.get(name) == null ? null : getTimerInstance(loadedNameUniqueIDMap.get(name));
     }
 
     public TimerInstance getTimerInstance(UUID uniqueID) {
-        return enabledMap.get(uniqueID);
+        return enabledInstanceMap.get(uniqueID);
     }
 
-    public CheckAreaGroup getCheckAreaGroup(String name) {
-        if (!nameUniqueIDMap.containsKey(name))
+    public Objective getCheckAreaGroup(String name) {
+        if (!loadedNameUniqueIDMap.containsKey(name))
             return null;
-        else return getCheckAreaGroup(nameUniqueIDMap.get(name));
+        else return getCheckAreaGroup(loadedNameUniqueIDMap.get(name));
     }
 
-    public CheckAreaGroup getCheckAreaGroup(UUID uniqueID) {
-        return uniqueIDTimerPointGroupMap.get(uniqueID);
+    public Objective getCheckAreaGroup(UUID uniqueID) {
+        return loadedUniqueIDObjectivesMap.get(uniqueID);
     }
 
     public void saveAll() {
-        enabledMap.values().forEach(timerInstance -> {
+        enabledInstanceMap.values().forEach(timerInstance -> {
             try {
-                saveTimerRecord(timerInstance.getTimerRecords(), timerInstance.getCheckAreaGroup().getUniqueID());
+                saveTimerRecord(timerInstance.getTimerRecords(), timerInstance.getObjective().getUniqueID());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
-        try {
-            saveEnabled();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
-    private void saveEnabled() throws IOException {
-        var outPutStream = new OutputStreamWriter(new FileOutputStream(enabledCheckAreaGroupsFile, false), StandardCharsets.UTF_8);
-        gson.toJson(enabledMap.keySet(), outPutStream);
-        outPutStream.flush();
-        outPutStream.close();
-    }
 
     public TimerRecords loadTimerRecord(UUID uniqueID) throws FileNotFoundException {
-        var recordFile = new File(timerRecordFolder, uniqueID + ".json");
+        var recordFile = new File(timerRecordFolder, loadedUniqueIDObjectivesMap.get(uniqueID).getName() + ".json");
         return recordFile.exists() && recordFile.length() != 0 ? gson.fromJson(new InputStreamReader(new FileInputStream(recordFile), StandardCharsets.UTF_8), TimerRecords.class) : new TimerRecords();
     }
 
@@ -178,11 +151,11 @@ public class TimerInstanceManager {
         writer.close();
     }
 
-    public void saveCheckAreaGroup(CheckAreaGroup group) throws IOException {
-        var groupFile = new File(timerDataFolder, group.getUniqueID() + ".json");
+    public void saveObjective(Objective objective) throws IOException {
+        var groupFile = new File(timerDataFolder, objective.getUniqueID() + ".json");
         groupFile.createNewFile();
         var writer = new OutputStreamWriter(new FileOutputStream(groupFile, false), StandardCharsets.UTF_8);
-        gson.toJson(group, writer);
+        gson.toJson(objective, writer);
         writer.flush();
         writer.close();
     }

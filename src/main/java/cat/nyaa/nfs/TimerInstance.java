@@ -1,7 +1,7 @@
 package cat.nyaa.nfs;
 
 import cat.nyaa.nfs.dataclasses.CheckArea;
-import cat.nyaa.nfs.dataclasses.CheckAreaGroup;
+import cat.nyaa.nfs.dataclasses.Objective;
 import cat.nyaa.nfs.dataclasses.TimerRecords;
 import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.Location;
@@ -17,17 +17,16 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class TimerInstance implements Listener {
-    private final CheckAreaGroup checkAreaGroup;
+    private final Objective objective;
     private final TimerRecords timerRecords;
     private final PlayerRecordManager playerRecordManager;
     private final HashMap<UUID, List<Long>> playerProgress = new HashMap<>();
     private final Map<UUID, Long> resetCoolDownMap = new HashMap<>();
     private final DecimalFormat numberFormatter = new DecimalFormat("#0.00");
-    private boolean disabled = false;
 
 
-    public TimerInstance(CheckAreaGroup checkAreaGroup, TimerRecords timerRecords, PlayerRecordManager playerRecordManager) {
-        this.checkAreaGroup = checkAreaGroup;
+    public TimerInstance(Objective objective, TimerRecords timerRecords, PlayerRecordManager playerRecordManager) {
+        this.objective = objective;
         this.timerRecords = timerRecords;
         this.playerRecordManager = playerRecordManager;
     }
@@ -36,7 +35,7 @@ public class TimerInstance implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         if (event.getTo() == null)
             return;
-        if (checkAreaGroup.getSize() < 3)
+        if (objective.getSize() < 3)
             return;
         List<Long> progress;
         if (playerProgress.containsKey(event.getPlayer().getUniqueId()))
@@ -45,40 +44,40 @@ public class TimerInstance implements Listener {
             progress = new ArrayList<>();
             playerProgress.put(event.getPlayer().getUniqueId(), progress);
         }
-        if (System.currentTimeMillis() - resetCoolDownMap.getOrDefault(event.getPlayer().getUniqueId(), System.currentTimeMillis()) > 10000
-                && progress.size() > 0
-                && isRelevant(event.getFrom(), event.getTo(), checkAreaGroup.getCheckArea(0))) {
+        if (System.currentTimeMillis() - resetCoolDownMap.getOrDefault(event.getPlayer().getUniqueId(), System.currentTimeMillis()) > 3000 // which is 1 seconds
+                && !progress.isEmpty()
+                && isRelevant(event.getFrom(), event.getTo(), objective.getCheckArea(0))) {
             playerProgress.remove(event.getPlayer().getUniqueId());
             resetCoolDownMap.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
         }
-        if (isRelevant(event.getFrom(), event.getTo(), checkAreaGroup.getCheckArea(progress.size()))) {
+        if (isRelevant(event.getFrom(), event.getTo(), objective.getCheckArea(progress.size()))) {
             progress.add(System.currentTimeMillis());
             if (progress.size() == 1) {
                 resetCoolDownMap.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
-                event.getPlayer().sendTitle(" ", NeedForSpeed.instance.getLanguage().firstCheckAreaSubtitle.produce(Pair.of("groupName", checkAreaGroup.getName())), 0, 20, 5);
-                event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().firstCheckAreaNotice.produce(Pair.of("groupName", checkAreaGroup.getName())));
+                event.getPlayer().sendTitle(" ", NeedForSpeed.instance.getLanguage().firstCheckAreaSubtitle.produce(Pair.of("groupName", objective.getName())), 0, 20, 5);
+                event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().firstCheckAreaNotice.produce(Pair.of("groupName", objective.getName())));
                 event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
                 playerProgress.put(event.getPlayer().getUniqueId(), progress);
-            } else if (progress.size() == checkAreaGroup.getCheckAreas().size()) {
+            } else if (progress.size() == objective.getCheckAreas().size()) {
                 var time = numberFormatter.format((progress.get(progress.size() - 1) - progress.get(0)) / 1000D);
-                event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().finishNotice.produce(Pair.of("groupName", checkAreaGroup.getName()), Pair.of("time", time)));
+                event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().finishNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("time", time)));
                 event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
                 playerProgress.remove(event.getPlayer().getUniqueId());
-                var isNewRecord = playerRecordManager.pushNewRecord(event.getPlayer().getUniqueId(), checkAreaGroup.getUniqueID(), new ArrayList<>(progress));
+                var isNewRecord = playerRecordManager.pushNewRecord(event.getPlayer().getUniqueId(), objective.getUniqueID(), new ArrayList<>(progress));
                 if (isNewRecord) {
                     event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().newRecordNotice.produce());
                     timerRecords.update(event.getPlayer().getUniqueId(), progress.get(progress.size() - 1) - progress.get(0));
                 }
                 event.getPlayer().sendTitle(" ", NeedForSpeed.instance.getLanguage().finishSubtitle.produce(
-                        Pair.of("groupName", checkAreaGroup.getName()),
+                        Pair.of("groupName", objective.getName()),
                         Pair.of("time", time),
                         Pair.of("completeTag", isNewRecord ? NeedForSpeed.instance.getLanguage().newRecordTag.produce() : NeedForSpeed.instance.getLanguage().normalCompleteTag.produce()
                         )), 0, 20, 5);
             } else {
                 var totalTime = numberFormatter.format((progress.get(progress.size() - 1) - progress.get(0)) / 1000D);
                 var partTime = numberFormatter.format((progress.get(progress.size() - 1) - progress.get(progress.size() - 2)) / 1000D);
-                event.getPlayer().sendTitle(" ", NeedForSpeed.instance.getLanguage().checkAreaPassSubtitle.produce(Pair.of("groupName", checkAreaGroup.getName()), Pair.of("checkAreaNumber", progress.size() - 1), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)), 0, 20, 5);
-                event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().checkAreaPassNotice.produce(Pair.of("groupName", checkAreaGroup.getName()), Pair.of("checkAreaNumber", progress.size() - 1), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)));
+                event.getPlayer().sendTitle(" ", NeedForSpeed.instance.getLanguage().checkAreaPassSubtitle.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", progress.size() - 1), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)), 0, 20, 5);
+                event.getPlayer().sendMessage(NeedForSpeed.instance.getLanguage().checkAreaPassNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", progress.size() - 1), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)));
                 event.getPlayer().playSound(event.getPlayer().getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
             }
         }
@@ -88,7 +87,7 @@ public class TimerInstance implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (playerProgress.containsKey(event.getEntity().getUniqueId()) && !playerProgress.get(event.getEntity().getUniqueId()).isEmpty()) {
-            event.getEntity().sendTitle(NeedForSpeed.instance.getLanguage().timerResetAuto.produce(Pair.of("groupName", checkAreaGroup.getName())), " ", 0, 20, 10);
+            event.getEntity().sendTitle(NeedForSpeed.instance.getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), " ", 0, 20, 10);
             playerProgress.remove(event.getEntity().getUniqueId());
         }
     }
@@ -116,12 +115,11 @@ public class TimerInstance implements Listener {
     }
 
     public void disable() {
-        disabled = true;
         HandlerList.unregisterAll(this);
     }
 
-    public CheckAreaGroup getCheckAreaGroup() {
-        return checkAreaGroup;
+    public Objective getObjective() {
+        return objective;
     }
 
     public TimerRecords getTimerRecords() {

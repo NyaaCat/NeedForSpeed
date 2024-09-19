@@ -16,7 +16,6 @@ import org.bukkit.entity.Player;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,14 +37,14 @@ public class NFSCommand implements TabExecutor {
             sender.sendMessage(pluginInstance.getLanguage().playerOnlyCommand.produce());
             return true;
         }
-        // nfs checkareagroup create/del/rename <name>
+        // nfs objective create/del/rename <name>
         // nfs checkarea <groupname> new/del <index>
         if (args.length < 1) {
             sender.sendMessage(pluginInstance.getLanguage().usage.produce());
             return true;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
-            case "checkareagroup" -> {
+            case "objective" -> {
                 if (args.length < 3) {
                     sender.sendMessage(pluginInstance.getLanguage().usage.produce());
                     return true;
@@ -57,7 +56,7 @@ public class NFSCommand implements TabExecutor {
                             return true;
                         } else {
                             try {
-                                pluginInstance.getTimerInstanceManager().createNewCheckAreaGroup(args[2]);
+                                pluginInstance.getTimerInstanceManager().createNewObjective(args[2]);
                             } catch (FileNotFoundException e) {
                                 throw new RuntimeException(e);
                             }
@@ -220,7 +219,7 @@ public class NFSCommand implements TabExecutor {
                             }
                         }
                         try {
-                            pluginInstance.getTimerInstanceManager().saveCheckAreaGroup(checkAreaGroup);
+                            pluginInstance.getTimerInstanceManager().saveObjective(checkAreaGroup);
                         } catch (IOException e) {
                             e.printStackTrace();
                             sender.sendMessage(pluginInstance.getLanguage().failedToApplyOperation.produce());
