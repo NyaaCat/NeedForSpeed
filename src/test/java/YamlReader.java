@@ -44,39 +44,39 @@ public class YamlReader {
     }
 
     public static void main(String[] args) {
-        var jsonBase = new File("C:\\Users\\langua\\Desktop\\New folder");
+        var jsonBase = new File("/home/langua/Softwares/paper1.21.1/plugins/NeedForSpeed/objectives/");
         var gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
         try {
-            YamlReader reader = new YamlReader("C:\\Users\\langua\\Downloads\\Telegram Desktop\\timers.yml");
+            YamlReader reader = new YamlReader("/home/langua/Downloads/Telegram Desktop/timers.yml");
 
             // Access data by key
-            var timers = (Map)reader.getValue("timers");
-            for(var k : timers.keySet()){
-                var records = (Map)timers.get(k);
+            var timers = (Map) reader.getValue("timers");
+            for (var k : timers.keySet()) {
+                var records = (Map) timers.get(k);
                 var name = (String) records.get("name");
-                var enabled = (Boolean)records.get("enable");
-                var checkpoints = (Map)records.get("checkpoint");
-                var checkAreaList = new ArrayList<CheckRange>();
+                var enabled = (Boolean) records.get("enable");
+                var checkpoints = (Map) records.get("checkpoint");
+                var checkRanges = new ArrayList<CheckRange>();
 
-                for(int i =1;checkpoints.containsKey(String.valueOf(i));i++){
-                    var cp = (Map)checkpoints.get(String.valueOf(i));
+                for (int i = 1; checkpoints.containsKey(String.valueOf(i)); i++) {
+                    var cp = (Map) checkpoints.get(String.valueOf(i));
                     var world = (String) cp.get("world");
-                    var x1 = (int)cp.get("max_x");
-                    var y1 = (int)cp.get("max_y");
-                    var z1 = (int)cp.get("max_z");
-                    var x2 = (int)cp.get("min_x");
-                    var y2 = (int)cp.get("min_y");
-                    var z2 = (int)cp.get("min_z");
-                    checkAreaList.add(
+                    var x1 = (int) cp.get("max_x");
+                    var y1 = (int) cp.get("max_y");
+                    var z1 = (int) cp.get("max_z");
+                    var x2 = (int) cp.get("min_x");
+                    var y2 = (int) cp.get("min_y");
+                    var z2 = (int) cp.get("min_z");
+                    checkRanges.add(
                             new CheckRange(world,
-                                    new Point(x1,y1,z1),
-                                    new Point(x2,y2,z2)
-                                    )
+                                    new Point(x1, y1, z1),
+                                    new Point(x2, y2, z2)
+                            )
                     );
                 }
 
                 var uniqueID = UUID.randomUUID();
-                var checkAreaGroup = new Objective(uniqueID, name,enabled, checkAreaList);
+                var checkAreaGroup = new Objective(uniqueID, name, enabled, true, false, checkRanges);
                 var fos = new FileOutputStream(new File(jsonBase, name + ".json"), false);
                 fos.write(gson.toJson(checkAreaGroup).getBytes(StandardCharsets.UTF_8));
                 fos.flush();

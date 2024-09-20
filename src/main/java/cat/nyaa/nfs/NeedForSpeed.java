@@ -52,11 +52,10 @@ public class NeedForSpeed extends JavaPlugin{
         return recorder;
     }
 
-
     @Override
     public void onDisable() {
         try {
-            recorder.shutdown();
+            if (recorder != null) recorder.shutdown();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

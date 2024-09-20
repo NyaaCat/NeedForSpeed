@@ -2,6 +2,7 @@ package cat.nyaa.nfs;
 
 import cat.nyaa.nfs.dataclasses.Objective;
 import cat.nyaa.nfs.save.PlayerRecord;
+import cat.nyaa.nfs.save.RecordBy;
 import cat.nyaa.nfs.save.Recorder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,7 +31,6 @@ public class TimerListenerInstance implements Listener {
     private final Map<UUID, Long> resetCoolDownMap = new HashMap<>();
     private final DecimalFormat numberFormatter = new DecimalFormat("#0.00");
 
-
     public TimerListenerInstance(Objective objective, Recorder recorder) {
         this.objective = objective;
         this.recorder = recorder;
@@ -44,7 +44,7 @@ public class TimerListenerInstance implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         try {
             var playerBestPlay = recorder.getBestPlayerRecord(event.getPlayer().getUniqueId(), objective.getUniqueID());
-            playerBestCache.put(event.getPlayer().getUniqueId(), Objects.requireNonNullElseGet(playerBestPlay, () -> new PlayerRecord(-1, -1, objective.getUniqueID(), event.getPlayer().getUniqueId(), Long.MAX_VALUE, "")));
+            playerBestCache.put(event.getPlayer().getUniqueId(), Objects.requireNonNullElseGet(playerBestPlay, () -> new PlayerRecord(-1, -1, objective.getUniqueID(), event.getPlayer().getUniqueId(), RecordBy.NONE, Long.MAX_VALUE, new ArrayList<>())));
         } catch (SQLException e) {
             event.getPlayer().sendMessage(getLanguage().failedToLoadPersonalBestOn.produce(Pair.of("groupName", objective.getName())));
             throw new RuntimeException(e);
@@ -76,8 +76,9 @@ public class TimerListenerInstance implements Listener {
         if (System.currentTimeMillis() - resetCoolDownMap.getOrDefault(player.getUniqueId(), System.currentTimeMillis()) > 3000 // which is 3 seconds
                 && !progress.isEmpty()
                 && objective.getCheck(0).isRelevant(event.getFrom(), event.getTo())) {
-            playerProgress.remove(player.getUniqueId());
             resetCoolDownMap.put(player.getUniqueId(), System.currentTimeMillis());
+            var record = recordThenReset(player, RecordBy.RESTARTED);
+            pushRecordAsync(record);
         }
         if (objective.getCheck(progress.size()).isRelevant(event.getFrom(), event.getTo())) {
             progress.add(System.currentTimeMillis());
@@ -92,16 +93,14 @@ public class TimerListenerInstance implements Listener {
                 var formattedTime = numberFormatter.format((progress.getLast() - progress.getFirst()) / 1000D);
                 player.sendMessage(getLanguage().finishNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("time", formattedTime)));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
-                playerProgress.remove(player.getUniqueId());
 
-                var record = createPlayerRecord(player, timeUsedInMilliseconds);
-                pushRecordAsync(record);
-
+                var record = recordThenReset(player, RecordBy.FINISHED);
                 var isNewRecord = isBestPlay(player, record.timeInMillisecond());
                 if (isNewRecord) {
                     player.sendMessage(getLanguage().newRecordNotice.produce());
                     playerBestCache.put(player.getUniqueId(), record);
                 }
+                pushRecordAsync(record);
 
                 player.sendTitle(" ", getLanguage().finishSubtitle.produce(
                         Pair.of("groupName", objective.getName()),
@@ -138,23 +137,20 @@ public class TimerListenerInstance implements Listener {
         });
     }
 
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        if (playerProgress.containsKey(event.getEntity().getUniqueId()) && !playerProgress.get(event.getEntity().getUniqueId()).isEmpty()) {
-            event.getEntity().sendTitle(getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), " ", 0, 20, 10);
-            playerProgress.remove(event.getEntity().getUniqueId());
-        }
+    private PlayerRecord recordThenReset(Player player, RecordBy source) { // need playerProgress.contains(player.getUniqueId())
+        var record = PlayerRecord.capture(objective.getUniqueID(), player.getUniqueId(), source, playerProgress.get(player.getUniqueId()));
+        playerProgress.remove(player.getUniqueId());
+        return record;
     }
 
-    private PlayerRecord createPlayerRecord(Player player, long timeUsedInMilliseconds) {
-        return new PlayerRecord(
-                -1,
-                System.currentTimeMillis(),
-                objective.getUniqueID(),
-                player.getUniqueId(),
-                timeUsedInMilliseconds,
-                compactGson.toJson(playerProgress.get(player.getUniqueId()))
-        );
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!objective.needClearOnDeath()) return;
+        if (playerProgress.containsKey(event.getEntity().getUniqueId()) && !playerProgress.get(event.getEntity().getUniqueId()).isEmpty()) {
+            event.getEntity().sendTitle(" ", getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), 0, 20, 10);
+            var record = recordThenReset(event.getEntity(), RecordBy.DEATH);
+            pushRecordAsync(record);
+        }
     }
 
     public void disable() {

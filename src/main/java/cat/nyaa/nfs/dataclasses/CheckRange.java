@@ -33,25 +33,24 @@ public class CheckRange {
         if (!from.getWorld().getName().equals(world) || !to.getWorld().getName().equals(world)) {
             return false;
         }
-        // Step 2: Check if either `from` or `to` is inside the box
-        if (isInside(from) || isInside(to)) {
-            return true;
-        }
-        // Step 3: Check if the line segment intersects the box
+
         Point fromPoint = new Point(from.getX(), from.getY(), from.getZ());
         Point toPoint = new Point(to.getX(), to.getY(), to.getZ());
 
-        return intersectsBoundingBox(fromPoint, toPoint);
+        // Step 2: Check if either `from` or `to` is inside the box
+        if (isInside(fromPoint) || isInside(toPoint)) {
+            return true;
+        }
+
+        // Step 3: Check if the line segment intersects the box
+//        return intersectsBoundingBox(fromPoint, toPoint);
+        return false;
     }
 
-    private boolean isInside(Location loc) {
-        double x = loc.getX();
-        double y = loc.getY();
-        double z = loc.getZ();
-
-        return x >= b.x && x <= a.x &&
-                y >= b.y && y <= a.y &&
-                z >= b.z && z <= a.z;
+    private boolean isInside(Point point) {
+        return point.x <= a.x && point.x >= b.x &&
+                point.y <= a.y && point.y >= b.y &&
+                point.z <= a.z && point.z >= b.z;
     }
 
     private boolean intersectsBoundingBox(Point from, Point to) {

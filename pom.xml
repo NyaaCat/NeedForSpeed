@@ -6,7 +6,7 @@
 
     <groupId>cat.nyaa.nfs</groupId>
     <artifactId>NeedForSpeed</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>NeedForSpeed</name>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>land.melon.lab</groupId>
             <artifactId>simplelanguageloader</artifactId>
-            <version>1.14</version>
+            <version>1.14.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
