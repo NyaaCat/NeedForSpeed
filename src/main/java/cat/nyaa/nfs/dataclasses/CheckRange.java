@@ -56,9 +56,9 @@ public class CheckRange {
     }
 
     private boolean isInside(Point point) {
-        return point.x <= a.x && point.x >= b.x &&
-                point.y <= a.y && point.y >= b.y &&
-                point.z <= a.z && point.z >= b.z;
+        return point.x <= (a.x + 1) && point.x >= (b.x - 1) &&
+                point.y <= (a.y + 1) && point.y >= (b.y - 1) &&
+                point.z <= (a.z + 1) && point.z >= (b.z - 1);
     }
 
     private boolean intersectsBoundingBox(Point from, Point to) {
