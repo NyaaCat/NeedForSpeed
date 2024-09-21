@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -118,6 +119,20 @@ public class TimerListenerInstance implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
+        if (!playerProgress.containsKey(event.getPlayer().getUniqueId()))
+            return;
+
+        var progress = playerProgress.get(event.getPlayer().getUniqueId());
+        var worldNameNeed = objective.getCheck(progress.size()).getWorld();
+        if (!worldNameNeed.equals(event.getPlayer().getWorld().getName())) {
+            sendTimerResetAutoTitle(event.getPlayer());
+            var record = recordThenReset(event.getPlayer(), RecordBy.CHANGE_WORLD);
+            pushRecordAsync(record);
+        }
+    }
+
     private int currentCheckRangeNumber(List<Long> progress) {
         return objective.isFirstRangeCountsCheckNumber() ? progress.size() : progress.size() - 1;
     }
@@ -153,10 +168,14 @@ public class TimerListenerInstance implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (!objective.isClearOnDeath()) return;
         if (playerProgress.containsKey(event.getEntity().getUniqueId()) && !playerProgress.get(event.getEntity().getUniqueId()).isEmpty()) {
-            event.getEntity().sendTitle(" ", getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), 0, 20, 10);
+            sendTimerResetAutoTitle(event.getEntity());
             var record = recordThenReset(event.getEntity(), RecordBy.DEATH);
             pushRecordAsync(record);
         }
+    }
+
+    private void sendTimerResetAutoTitle(Player player) {
+        player.sendTitle(" ", getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), 0, 20, 10);
     }
 
     public void disable() {
