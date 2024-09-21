@@ -7,6 +7,7 @@ import cat.nyaa.nfs.save.Recorder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.utils.Pair;
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
@@ -56,12 +57,36 @@ public class TimerListenerInstance implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         playerBestCache.remove(event.getPlayer().getUniqueId());
         if (!objective.isClearOnQuit()) return;
-        if (playerProgress.containsKey(event.getPlayer().getUniqueId()) && !playerProgress.get(event.getPlayer().getUniqueId()).isEmpty()) {
+        if (isPlayingThisObjective(event.getPlayer())) {
             var record = recordThenReset(event.getPlayer(), RecordBy.QUIT);
             pushRecordAsync(record);
         }
     }
 
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!objective.isClearOnDeath()) return;
+        if (isPlayingThisObjective(event.getEntity())) {
+            sendTimerResetAutoTitle(event.getEntity());
+            var record = recordThenReset(event.getEntity(), RecordBy.DEATH);
+            pushRecordAsync(record);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
+        if (!playerProgress.containsKey(event.getPlayer().getUniqueId()))
+            return;
+        if (isPlayingThisObjective(event.getPlayer())) {
+            var progress = playerProgress.get(event.getPlayer().getUniqueId());
+            var worldNameNeed = objective.getCheck(progress.size()).getWorld();
+            if (!worldNameNeed.equals(event.getPlayer().getWorld().getName())) {
+                sendTimerResetAutoTitle(event.getPlayer());
+                var record = recordThenReset(event.getPlayer(), RecordBy.CHANGE_WORLD);
+                pushRecordAsync(record);
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
@@ -70,6 +95,8 @@ public class TimerListenerInstance implements Listener {
         if (objective.getSize() < 3)
             return;
         if (!objective.isEnabled())
+            return;
+        if (List.of(GameMode.SPECTATOR, GameMode.CREATIVE).contains(event.getPlayer().getGameMode()))
             return;
         List<Long> progress;
         var player = event.getPlayer();
@@ -123,20 +150,6 @@ public class TimerListenerInstance implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-        if (!playerProgress.containsKey(event.getPlayer().getUniqueId()))
-            return;
-        var progress = playerProgress.get(event.getPlayer().getUniqueId());
-        if (progress.isEmpty()) return;
-        var worldNameNeed = objective.getCheck(progress.size()).getWorld();
-        if (!worldNameNeed.equals(event.getPlayer().getWorld().getName())) {
-            sendTimerResetAutoTitle(event.getPlayer());
-            var record = recordThenReset(event.getPlayer(), RecordBy.CHANGE_WORLD);
-            pushRecordAsync(record);
-        }
-    }
-
     private int currentCheckRangeNumber(List<Long> progress) {
         return objective.isFirstRangeCountsCheckNumber() ? progress.size() : progress.size() - 1;
     }
@@ -168,14 +181,8 @@ public class TimerListenerInstance implements Listener {
         return record;
     }
 
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!objective.isClearOnDeath()) return;
-        if (playerProgress.containsKey(event.getEntity().getUniqueId()) && !playerProgress.get(event.getEntity().getUniqueId()).isEmpty()) {
-            sendTimerResetAutoTitle(event.getEntity());
-            var record = recordThenReset(event.getEntity(), RecordBy.DEATH);
-            pushRecordAsync(record);
-        }
+    private boolean isPlayingThisObjective(Player player) {
+        return playerProgress.containsKey(player.getUniqueId()) || !playerProgress.get(player.getUniqueId()).isEmpty();
     }
 
     private void sendTimerResetAutoTitle(Player player) {
