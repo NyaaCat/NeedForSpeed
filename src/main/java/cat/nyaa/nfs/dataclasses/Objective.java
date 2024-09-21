@@ -9,6 +9,7 @@ public class Objective {
     private boolean enabled;
     private boolean clearOnDeath;
     private boolean clearOnQuit;
+    private boolean firstRangeCountsCheckNumber;
     private List<CheckRange> checkRanges;
 
     public Objective(UUID uniqueID, String name, List<CheckRange> checkRanges) {
@@ -17,15 +18,17 @@ public class Objective {
         enabled = true;
         clearOnDeath = true;
         clearOnQuit = false;
+        firstRangeCountsCheckNumber = true;
         this.checkRanges = checkRanges;
     }
 
-    public Objective(UUID uniqueID, String name, boolean enabled, boolean clearOnDeath, boolean clearOnQuit, List<CheckRange> checkRanges) {
+    public Objective(UUID uniqueID, String name, boolean enabled, boolean clearOnDeath, boolean clearOnQuit, boolean firstRangeCountsCheckNumber, List<CheckRange> checkRanges) {
         this.name = name;
         this.uniqueID = uniqueID;
         this.enabled = enabled;
         this.clearOnDeath = clearOnDeath;
         this.clearOnQuit = clearOnQuit;
+        this.firstRangeCountsCheckNumber = firstRangeCountsCheckNumber;
         this.checkRanges = checkRanges;
     }
 
@@ -40,7 +43,7 @@ public class Objective {
         return name;
     }
 
-    public List<CheckRange> getCheckAreas() {
+    public List<CheckRange> getCheckRanges() {
         return checkRanges;
     }
 
@@ -50,10 +53,6 @@ public class Objective {
 
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public boolean needClearOnDeath() {
-        return clearOnDeath;
     }
 
     public void addCheck(CheckRange checkRange) {
@@ -68,6 +67,38 @@ public class Objective {
 
     public boolean removeCheck(int index) {
         return checkRanges.remove(index) != null;
+    }
+
+    public boolean isClearOnQuit() {
+        return clearOnQuit;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public void setClearOnDeath(boolean clearOnDeath) {
+        this.clearOnDeath = clearOnDeath;
+    }
+
+    public void setClearOnQuit(boolean clearOnQuit) {
+        this.clearOnQuit = clearOnQuit;
+    }
+
+    public void setFirstRangeCountsCheckNumber(boolean firstRangeCountsCheckNumber) {
+        this.firstRangeCountsCheckNumber = firstRangeCountsCheckNumber;
+    }
+
+    public void setCheckRanges(List<CheckRange> checkRanges) {
+        this.checkRanges = checkRanges;
+    }
+
+    public boolean isFirstRangeCountsCheckNumber() {
+        return firstRangeCountsCheckNumber;
+    }
+
+    public boolean isClearOnDeath() {
+        return clearOnDeath;
     }
 
     public CheckRange getCheck(int index) {

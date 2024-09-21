@@ -53,6 +53,7 @@ public class TimerListenerInstance implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        if (!objective.isClearOnQuit()) return;
         playerBestCache.remove(event.getPlayer().getUniqueId());
     }
 
@@ -88,7 +89,7 @@ public class TimerListenerInstance implements Listener {
                 player.sendMessage(getLanguage().firstCheckAreaNotice.produce(Pair.of("groupName", objective.getName())));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
                 playerProgress.put(player.getUniqueId(), progress);
-            } else if (progress.size() == objective.getCheckAreas().size()) {
+            } else if (progress.size() == objective.getCheckRanges().size()) {
                 var timeUsedInMilliseconds = progress.getLast() - progress.getFirst();
                 var formattedTime = numberFormatter.format((progress.getLast() - progress.getFirst()) / 1000D);
                 player.sendMessage(getLanguage().finishNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("time", formattedTime)));
@@ -110,12 +111,17 @@ public class TimerListenerInstance implements Listener {
             } else {
                 var totalTime = numberFormatter.format((progress.getLast() - progress.getFirst()) / 1000D);
                 var partTime = numberFormatter.format((progress.getLast() - progress.get(progress.size() - 2)) / 1000D);
-                player.sendTitle(" ", getLanguage().checkAreaPassSubtitle.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", progress.size() - 1), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)), 0, 20, 5);
-                player.sendMessage(getLanguage().checkAreaPassNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", progress.size() - 1), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)));
+                player.sendTitle(" ", getLanguage().checkAreaPassSubtitle.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", currentCheckRangeNumber(progress)), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)), 0, 20, 5);
+                player.sendMessage(getLanguage().checkAreaPassNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", currentCheckRangeNumber(progress)), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
             }
         }
     }
+
+    private int currentCheckRangeNumber(List<Long> progress) {
+        return objective.isFirstRangeCountsCheckNumber() ? progress.size() : progress.size() - 1;
+    }
+
 
     private boolean isBestPlay(Player player, long timeUsedInMilliseconds) {
         if (!playerBestCache.containsKey(player.getUniqueId())) {
@@ -145,7 +151,7 @@ public class TimerListenerInstance implements Listener {
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!objective.needClearOnDeath()) return;
+        if (!objective.isClearOnDeath()) return;
         if (playerProgress.containsKey(event.getEntity().getUniqueId()) && !playerProgress.get(event.getEntity().getUniqueId()).isEmpty()) {
             event.getEntity().sendTitle(" ", getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), 0, 20, 10);
             var record = recordThenReset(event.getEntity(), RecordBy.DEATH);

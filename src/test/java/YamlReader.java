@@ -76,7 +76,7 @@ public class YamlReader {
                 }
 
                 var uniqueID = UUID.randomUUID();
-                var checkAreaGroup = new Objective(uniqueID, name, enabled, true, false, checkRanges);
+                var checkAreaGroup = new Objective(uniqueID, name, enabled, true, false, true, checkRanges);
                 var fos = new FileOutputStream(new File(jsonBase, name + ".json"), false);
                 fos.write(gson.toJson(checkAreaGroup).getBytes(StandardCharsets.UTF_8));
                 fos.flush();

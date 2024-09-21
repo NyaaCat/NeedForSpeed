@@ -28,6 +28,14 @@ public class CheckRange {
         return b;
     }
 
+    public void setA(Point a) {
+        this.a = a;
+    }
+
+    public void setB(Point b) {
+        this.b = b;
+    }
+
     public boolean isRelevant(Location from, Location to) {
         // Step 1: Ensure both locations are in the same world as the range
         if (!from.getWorld().getName().equals(world) || !to.getWorld().getName().equals(world)) {
@@ -54,48 +62,7 @@ public class CheckRange {
     }
 
     private boolean intersectsBoundingBox(Point from, Point to) {
-        // Use the "slab method" to check if the line intersects the AABB
-        double tmin = (b.x - from.x) / (to.x - from.x);
-        double tmax = (a.x - from.x) / (to.x - from.x);
-        if (tmin > tmax) {
-            double temp = tmin;
-            tmin = tmax;
-            tmax = temp;
-        }
-
-        double tymin = (b.y - from.y) / (to.y - from.y);
-        double tymax = (a.y - from.y) / (to.y - from.y);
-        if (tymin > tymax) {
-            double temp = tymin;
-            tymin = tymax;
-            tymax = temp;
-        }
-
-        if ((tmin > tymax) || (tymin > tmax)) {
-            return false;
-        }
-
-        if (tymin > tmin) {
-            tmin = tymin;
-        }
-
-        if (tymax < tmax) {
-            tmax = tymax;
-        }
-
-        double tzmin = (b.z - from.z) / (to.z - from.z);
-        double tzmax = (a.z - from.z) / (to.z - from.z);
-        if (tzmin > tzmax) {
-            double temp = tzmin;
-            tzmin = tzmax;
-            tzmax = temp;
-        }
-
-        if ((tmin > tzmax) || (tzmin > tmax)) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 }
 
