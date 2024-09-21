@@ -54,8 +54,12 @@ public class TimerListenerInstance implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        if (!objective.isClearOnQuit()) return;
         playerBestCache.remove(event.getPlayer().getUniqueId());
+        if (!objective.isClearOnQuit()) return;
+        if (playerProgress.containsKey(event.getPlayer().getUniqueId()) && !playerProgress.get(event.getPlayer().getUniqueId()).isEmpty()) {
+            var record = recordThenReset(event.getPlayer(), RecordBy.QUIT);
+            pushRecordAsync(record);
+        }
     }
 
 
@@ -123,8 +127,8 @@ public class TimerListenerInstance implements Listener {
     public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
         if (!playerProgress.containsKey(event.getPlayer().getUniqueId()))
             return;
-
         var progress = playerProgress.get(event.getPlayer().getUniqueId());
+        if (progress.isEmpty()) return;
         var worldNameNeed = objective.getCheck(progress.size()).getWorld();
         if (!worldNameNeed.equals(event.getPlayer().getWorld().getName())) {
             sendTimerResetAutoTitle(event.getPlayer());
