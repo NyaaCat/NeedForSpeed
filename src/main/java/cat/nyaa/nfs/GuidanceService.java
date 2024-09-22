@@ -48,12 +48,12 @@ public class GuidanceService implements Listener {
         var playerLocation = player.getLocation();
         var playerSpeed = player.getVelocity().length();
         var playerDistance = playerLocation.distance(guidanceMarker.getLocation());
-        player.sendTitle("", playerSpeed + "", 0, 20, 0);
+
         if (playerSpeed > 0.15 && playerDistance > 5) {
             var locInFront = playerLocation.clone().add(playerLocation.getDirection().multiply(5));
             var vibrationSpeed = min(playerDistance / playerSpeed / 1.5, playerDistance / 2);
             var data = new Vibration(locInFront, new Vibration.Destination.BlockDestination(guidanceMarker.getLocation().getBlock()), (int) (vibrationSpeed));
-            player.spawnParticle(Particle.VIBRATION, locInFront, 10, data);
+            player.spawnParticle(Particle.VIBRATION, locInFront, 1, data);
         }
     }
 
