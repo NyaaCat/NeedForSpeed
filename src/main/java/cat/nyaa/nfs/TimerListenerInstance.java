@@ -182,7 +182,7 @@ public class TimerListenerInstance implements Listener {
     }
 
     private boolean isPlayingThisObjective(Player player) {
-        return playerProgress.containsKey(player.getUniqueId()) || !playerProgress.get(player.getUniqueId()).isEmpty();
+        return playerProgress.containsKey(player.getUniqueId()) && !playerProgress.get(player.getUniqueId()).isEmpty();
     }
 
     private void sendTimerResetAutoTitle(Player player) {
