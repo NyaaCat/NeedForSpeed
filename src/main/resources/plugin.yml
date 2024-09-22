@@ -5,6 +5,7 @@ api-version: 1.18
 authors: [ langua ]
 depend:
   - WorldEdit
+  - CommandAPI
 libraries:
   - org.xerial:sqlite-jdbc:3.46.1.0
 commands:

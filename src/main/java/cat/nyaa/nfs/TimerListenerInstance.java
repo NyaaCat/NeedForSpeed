@@ -166,14 +166,18 @@ public class TimerListenerInstance implements Listener {
 
     private void pushRecordAsync(PlayerRecord record) {
         NeedForSpeed.instance.getServer().getScheduler().runTaskAsynchronously(NeedForSpeed.instance, () -> {
-            try {
-                recorder.record(record);
-            } catch (SQLException e) {
-                NeedForSpeed.instance.getLogger().severe("Failed to log record");
-                NeedForSpeed.instance.getLogger().severe(record.toString());
-                throw new RuntimeException(e);
-            }
+            pushRecordSync(record);
         });
+    }
+
+    private void pushRecordSync(PlayerRecord record) {
+        try {
+            recorder.record(record);
+        } catch (SQLException e) {
+            NeedForSpeed.instance.getLogger().severe("Failed to log record");
+            NeedForSpeed.instance.getLogger().severe(record.toString());
+            throw new RuntimeException(e);
+        }
     }
 
     public void shutdown() {
@@ -181,7 +185,7 @@ public class TimerListenerInstance implements Listener {
         Bukkit.getServer().getOnlinePlayers().forEach(player -> {
             if (isPlayingThisObjective(player)) {
                 var record = recordThenReset(player, RecordBy.SERVER_SHUTDOWN);
-                pushRecordAsync(record);
+                pushRecordSync(record);
             }
         });
     }

@@ -2,8 +2,14 @@ package cat.nyaa.nfs;
 
 import cat.nyaa.nfs.command.NFSCommand;
 import cat.nyaa.nfs.save.Recorder;
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.StringArgument;
 import land.melon.lab.simplelanguageloader.SimpleLanguageLoader;
+import land.melon.lab.simplelanguageloader.utils.Pair;
 import org.bukkit.event.HandlerList;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -41,9 +47,7 @@ public class NeedForSpeed extends JavaPlugin{
     }
 
     private void reload() throws IOException, SQLException {
-
         onDisable();
-
 
         var languageFile = new File(dataFolder, "language.json");
         language = simpleLanguageLoader.loadOrInitialize(languageFile, Language.class, Language::new);
@@ -57,6 +61,7 @@ public class NeedForSpeed extends JavaPlugin{
         getServer().getPluginManager().registerEvents(guidanceService, this);
 
         getCommand("nfs").setExecutor(new NFSCommand(this));
+        registerCommands();
     }
 
     public Recorder getRecorder() {
@@ -75,6 +80,37 @@ public class NeedForSpeed extends JavaPlugin{
             throw new RuntimeException(e);
         }
         if (timerListenersManager != null) timerListenersManager.shutdown();
+        unregisterCommands();
         HandlerList.unregisterAll(this);
+    }
+
+    private void registerCommands() {
+        new CommandAPICommand("guidance").withArguments(new StringArgument("status").replaceSuggestions(ArgumentSuggestions.strings("on", "partial", "off"))).executesPlayer((player, args) -> {
+            var arg = (String) args.get("status");
+            if (arg == null) return;
+            var pdc = player.getPersistentDataContainer();
+            GuidanceLevel guidanceLevel;
+            String statusText;
+            switch (arg) {
+                case "partial" -> {
+                    guidanceLevel = GuidanceLevel.PARTIAL;
+                    statusText = language.partial.produce();
+                }
+                case "off" -> {
+                    guidanceLevel = GuidanceLevel.OFF;
+                    statusText = language.off.produce();
+                }
+                default -> {
+                    guidanceLevel = GuidanceLevel.ON;
+                    statusText = language.on.produce();
+                }
+            }
+            player.sendMessage(language.guidanceEnabled.produce(Pair.of("level", statusText)));
+            pdc.set(GuidanceService.guidancePreferenceKey, PersistentDataType.INTEGER, guidanceLevel.ordinal());
+        }).register(this);
+    }
+
+    private void unregisterCommands() {
+        CommandAPI.unregister("guidance");
     }
 }
