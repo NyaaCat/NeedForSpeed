@@ -69,4 +69,8 @@ public class TimerListenersManager {
         return getListenerInstance(loadedNameUniqueIDMap.get(name));
     }
 
+    public void shutdown() {
+        timerListenerMap.values().forEach(TimerListenerInstance::shutdown);
+    }
+
 }

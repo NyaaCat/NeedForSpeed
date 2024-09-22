@@ -7,6 +7,7 @@ import cat.nyaa.nfs.save.Recorder;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import land.melon.lab.simplelanguageloader.utils.Pair;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -116,11 +117,11 @@ public class TimerListenerInstance implements Listener {
         if (objective.getCheck(progress.size()).isRelevant(event.getFrom(), event.getTo())) {
             progress.add(System.currentTimeMillis());
             if (progress.size() == 1) {
-                resetCoolDownMap.put(player.getUniqueId(), System.currentTimeMillis());
                 player.sendTitle(" ", getLanguage().firstCheckAreaSubtitle.produce(Pair.of("groupName", objective.getName())), 0, 20, 5);
                 player.sendMessage(getLanguage().firstCheckAreaNotice.produce(Pair.of("groupName", objective.getName())));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
                 playerProgress.put(player.getUniqueId(), progress);
+                NeedForSpeed.instance.getGuidanceService().updateGuidance(player.getUniqueId(), objective.getCheck(1).getCenter(), objective.getCheck(1).getWorld());
             } else if (progress.size() == objective.getCheckRanges().size()) {
                 var timeUsedInMilliseconds = progress.getLast() - progress.getFirst();
                 var formattedTime = numberFormatter.format((progress.getLast() - progress.getFirst()) / 1000D);
@@ -146,6 +147,7 @@ public class TimerListenerInstance implements Listener {
                 player.sendTitle(" ", getLanguage().checkAreaPassSubtitle.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", currentCheckRangeNumber(progress)), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)), 0, 20, 5);
                 player.sendMessage(getLanguage().checkAreaPassNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("checkAreaNumber", currentCheckRangeNumber(progress)), Pair.of("totalTime", totalTime), Pair.of("partTime", partTime)));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
+                NeedForSpeed.instance.getGuidanceService().updateGuidance(player.getUniqueId(), objective.getCheck(progress.size()).getCenter(), objective.getCheck(progress.size()).getWorld());
             }
         }
     }
@@ -153,7 +155,6 @@ public class TimerListenerInstance implements Listener {
     private int currentCheckRangeNumber(List<Long> progress) {
         return objective.isFirstRangeCountsCheckNumber() ? progress.size() : progress.size() - 1;
     }
-
 
     private boolean isBestPlay(Player player, long timeUsedInMilliseconds) {
         if (!playerBestCache.containsKey(player.getUniqueId())) {
@@ -175,9 +176,20 @@ public class TimerListenerInstance implements Listener {
         });
     }
 
+    public void shutdown() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+            if (isPlayingThisObjective(player)) {
+                var record = recordThenReset(player, RecordBy.SERVER_SHUTDOWN);
+                pushRecordAsync(record);
+            }
+        });
+    }
+
     private PlayerRecord recordThenReset(Player player, RecordBy source) { // need playerProgress.contains(player.getUniqueId())
         var record = PlayerRecord.capture(objective.getUniqueID(), player.getUniqueId(), source, playerProgress.get(player.getUniqueId()));
         playerProgress.remove(player.getUniqueId());
+        NeedForSpeed.instance.getGuidanceService().removeGuidance(player.getUniqueId());
         return record;
     }
 
@@ -187,10 +199,6 @@ public class TimerListenerInstance implements Listener {
 
     private void sendTimerResetAutoTitle(Player player) {
         player.sendTitle(" ", getLanguage().timerResetAuto.produce(Pair.of("groupName", objective.getName())), 0, 20, 10);
-    }
-
-    public void disable() {
-        HandlerList.unregisterAll(this);
     }
 
     public Objective getObjective() {

@@ -1,39 +1,48 @@
 package cat.nyaa.nfs.dataclasses;
 
+import com.google.gson.annotations.SerializedName;
 import org.bukkit.Location;
+
+import static java.lang.Math.*;
 
 public class CheckRange {
     String world;
-    Point a;
-    Point b;
+    @SerializedName("a")
+    Point max;
+    @SerializedName("b")
+    Point min;
 
     public CheckRange() {
     }
 
-    public CheckRange(String world, Point a, Point b) {
+    public CheckRange(String world, Point max, Point min) {
         this.world = world;
-        this.a = new Point(Math.max(a.x, b.x), Math.max(a.y, b.y), Math.max(a.z, b.z));
-        this.b = new Point(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.min(a.z, b.z));
+        this.max = new Point(max(max.x, min.x), max(max.y, min.y), max(max.z, min.z));
+        this.min = new Point(min(max.x, min.x), min(max.y, min.y), min(max.z, min.z));
     }
 
     public String getWorld() {
         return world;
     }
 
-    public Point getA() {
-        return a;
+    public Point getMax() {
+        return max;
     }
 
-    public Point getB() {
-        return b;
+    public Point getMin() {
+        return min;
     }
 
-    public void setA(Point a) {
-        this.a = a;
+    public void setMax(Point max) {
+        this.max = max;
     }
 
-    public void setB(Point b) {
-        this.b = b;
+    public void setMin(Point min) {
+        this.min = min;
+    }
+
+    public Point getCenter() {
+        return new Point((max.x + min.x) / 2, (max.y + min.y) / 2, (max.z + min.z) / 2);
     }
 
     public boolean isRelevant(Location from, Location to) {
@@ -50,19 +59,76 @@ public class CheckRange {
             return true;
         }
 
-        // Step 3: Check if the line segment intersects the box
-//        return intersectsBoundingBox(fromPoint, toPoint);
         return false;
+
+        // Step 3: Check if the line segment intersects with the box
+//        return intersects(fromPoint, toPoint);
     }
 
     private boolean isInside(Point point) {
-        return point.x <= (a.x + 1) && point.x >= (b.x - 1) &&
-                point.y <= (a.y + 1) && point.y >= (b.y - 1) &&
-                point.z <= (a.z + 1) && point.z >= (b.z - 1);
+        return point.x <= (max.x + 1) && point.x >= (min.x - 1) &&
+                point.y <= (max.y + 1) && point.y >= (min.y - 1) &&
+                point.z <= (max.z + 1) && point.z >= (min.z - 1);
     }
 
-    private boolean intersectsBoundingBox(Point from, Point to) {
-        return false;
+    public boolean intersects(Point rayStart, Point rayEnd) {
+        // ref:
+        // https://tavianator.com/2011/ray_box.html
+        // https://tavianator.com/cgit/dimension.git/tree/libdimension/bvh/bvh.c#n194
+
+        Ray ray = new Ray(rayStart, rayEnd);
+        double tmax = Double.POSITIVE_INFINITY;
+        double tmin = 0;
+
+        double tx1 = (min.x - ray.start.x) * ray.direction_inv.x;
+        double tx2 = (max.x - ray.start.x) * ray.direction_inv.x;
+        tmin = max(tmin, min(tx1, tx2));
+        tmax = min(tmax, max(tx1, tx2));
+        
+
+        double ty1 = (min.y - ray.start.y) * ray.direction_inv.y;
+        double ty2 = (max.y - ray.start.y) * ray.direction_inv.y;
+        tmin = max(tmin, min(ty1, ty2));
+        tmax = min(tmax, max(ty1, ty2));
+
+        double tz1 = (min.z - ray.start.z) * ray.direction_inv.z;
+        double tz2 = (max.z - ray.start.z) * ray.direction_inv.z;
+        tmin = max(tmin, min(tz1, tz2));
+        tmax = min(tmax, max(tz1, tz2));
+
+        return tmax >= max(tmin, ray.magnitude);
+    }
+
+    private static class Ray {
+        final Point start;
+        final Point end;
+        final Point direction = new Point();
+        final Point direction_inv = new Point();
+        final double magnitude;
+
+
+        Ray(Point start, Point end) {
+            this.start = start;
+            this.end = end;
+
+            this.direction.x = end.x - start.x;
+            this.direction.y = end.y - start.y;
+            this.direction.z = end.z - start.z;
+
+            // Compute magnitude of direction
+            magnitude = sqrt(direction.x * direction.x +
+                    direction.y * direction.y +
+                    direction.z * direction.z);
+
+            // Normalize direction if necessary
+            direction.x /= magnitude;
+            direction.y /= magnitude;
+            direction.z /= magnitude;
+
+            this.direction_inv.x = 1.0 / this.direction.x;
+            this.direction_inv.y = 1.0 / this.direction.y;
+            this.direction_inv.z = 1.0 / this.direction.z;
+        }
     }
 }
 
