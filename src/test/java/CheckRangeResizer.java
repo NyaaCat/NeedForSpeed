@@ -17,8 +17,8 @@ public class CheckRangeResizer {
                 var objective = gson.fromJson(new FileReader(file), Objective.class);
                 objective.setFirstRangeCountsCheckNumber(true);
                 for (var checkRange : objective.getCheckRanges()) {
-                    var a = checkRange.getA();
-                    checkRange.setA(new Point(a.getX() + 1, a.getY() + 1, a.getZ() + 1));
+                    var a = checkRange.getMax();
+                    checkRange.setMax(new Point(a.x + 1, a.y + 1, a.z + 1));
                 }
                 try (var writer = new FileWriter(file)) {
                     writer.write(gson.toJson(objective));
