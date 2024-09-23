@@ -45,6 +45,8 @@ public class TimerListenerInstance implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!playerProgress.containsKey(event.getPlayer().getUniqueId()))
+            playerProgress.put(event.getPlayer().getUniqueId(), new ArrayList<>());
         try {
             var playerBestPlay = recorder.getBestPlayerRecord(event.getPlayer().getUniqueId(), objective.getUniqueID());
             playerBestCache.put(event.getPlayer().getUniqueId(), Objects.requireNonNullElseGet(playerBestPlay, () -> new PlayerRecord(-1, -1, objective.getUniqueID(), event.getPlayer().getUniqueId(), RecordBy.NONE, Long.MAX_VALUE, new ArrayList<>())));
@@ -62,6 +64,9 @@ public class TimerListenerInstance implements Listener {
             var record = recordThenReset(event.getPlayer(), RecordBy.QUIT);
             pushRecordAsync(record);
         }
+        if (playerProgress.get(event.getPlayer().getUniqueId()).isEmpty())
+            playerProgress.remove(event.getPlayer().getUniqueId());
+        resetCoolDownMap.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -99,18 +104,12 @@ public class TimerListenerInstance implements Listener {
             return;
         if (List.of(GameMode.SPECTATOR, GameMode.CREATIVE).contains(event.getPlayer().getGameMode()))
             return;
-        List<Long> progress;
         var player = event.getPlayer();
-        if (playerProgress.containsKey(player.getUniqueId()))
-            progress = playerProgress.get(player.getUniqueId());
-        else {
-            progress = new ArrayList<>();
-            playerProgress.put(player.getUniqueId(), progress);
-        }
-        if (System.currentTimeMillis() - resetCoolDownMap.getOrDefault(player.getUniqueId(), System.currentTimeMillis()) > 3000 // which is 3 seconds
+        List<Long> progress = playerProgress.get(player.getUniqueId());
+
+        if (System.currentTimeMillis() - resetCoolDownMap.getOrDefault(player.getUniqueId(), Long.MAX_VALUE) > 3000 // which is 3 seconds
                 && !progress.isEmpty()
                 && objective.getCheck(0).isRelevant(event.getFrom(), event.getTo())) {
-            resetCoolDownMap.put(player.getUniqueId(), System.currentTimeMillis());
             var record = recordThenReset(player, RecordBy.RESTARTED);
             pushRecordAsync(record);
         }
@@ -120,6 +119,7 @@ public class TimerListenerInstance implements Listener {
                 player.sendTitle(" ", getLanguage().firstCheckAreaSubtitle.produce(Pair.of("groupName", objective.getName())), 0, 20, 5);
                 player.sendMessage(getLanguage().firstCheckAreaNotice.produce(Pair.of("groupName", objective.getName())));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
+                resetCoolDownMap.put(player.getUniqueId(), System.currentTimeMillis());
                 playerProgress.put(player.getUniqueId(), progress);
                 NeedForSpeed.instance.getGuidanceService().updateGuidance(player.getUniqueId(), objective.getCheck(1).getCenter(), objective.getCheck(1).getWorld());
             } else if (progress.size() == objective.getCheckRanges().size()) {
@@ -192,7 +192,7 @@ public class TimerListenerInstance implements Listener {
 
     private PlayerRecord recordThenReset(Player player, RecordBy source) { // need playerProgress.contains(player.getUniqueId())
         var record = PlayerRecord.capture(objective.getUniqueID(), player.getUniqueId(), source, playerProgress.get(player.getUniqueId()));
-        playerProgress.remove(player.getUniqueId());
+        playerProgress.get(player.getUniqueId()).clear();
         NeedForSpeed.instance.getGuidanceService().removeGuidance(player.getUniqueId());
         return record;
     }
