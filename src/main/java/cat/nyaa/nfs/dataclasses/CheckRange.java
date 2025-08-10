@@ -2,6 +2,7 @@ package cat.nyaa.nfs.dataclasses;
 
 import com.google.gson.annotations.SerializedName;
 import org.bukkit.Location;
+import org.bukkit.util.BoundingBox;
 
 import static java.lang.Math.*;
 
@@ -46,6 +47,12 @@ public class CheckRange {
     }
 
     public boolean isRelevant(Location from, Location to) {
+        var boundingBox = new BoundingBox(max.x, max.y, max.z, min.x, min.y, min.z);
+        var direction = to.toVector().subtract(from.toVector());
+        var magnitude = direction.length();
+        direction.normalize();
+
+        
         // Step 1: Ensure both locations are in the same world as the range
         if (!from.getWorld().getName().equals(world) || !to.getWorld().getName().equals(world)) {
             return false;
