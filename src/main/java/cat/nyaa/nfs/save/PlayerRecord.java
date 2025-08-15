@@ -1,5 +1,6 @@
 package cat.nyaa.nfs.save;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public record PlayerRecord(int id, long createdTime, UUID objectiveUUID,
                 playerUniqueID,
                 source,
                 timeUsedInMilliseconds,
-                progress
+                new ArrayList<>(progress)
         );
     }
 }

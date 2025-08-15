@@ -43,7 +43,6 @@ public class CkptCommand implements CommandExecutor {
             BlockVector3 min = region.getMinimumPoint();
             BlockVector3 max = region.getMaximumPoint();
 
-            // a 是更大的那个点，b 是更小的那个点
             String json = String.format(
                     "{\"world\":\"%s\",\"a\":{\"x\":%.1f,\"y\":%.1f,\"z\":%.1f},\"b\":{\"x\":%.1f,\"y\":%.1f,\"z\":%.1f}}",
                     player.getWorld().getName(),
@@ -51,7 +50,6 @@ public class CkptCommand implements CommandExecutor {
                     (double) min.x(), (double) min.y(), (double) min.z()
             );
 
-            // send message (counter but at least 4 digits like 0001) + json
             player.sendMessage(ChatColor.GREEN + String.format("ckpt %04d: %s", counter++, json));
 
         } catch (Exception e) {

@@ -43,7 +43,7 @@ public class CheckRange {
     }
 
     public Point getCenter() {
-        return new Point((max.x + min.x) / 2, (max.y + min.y) / 2, (max.z + min.z) / 2);
+        return new Point((max.x + min.x) / 2.0, (max.y + min.y) / 2.0, (max.z + min.z) / 2.0);
     }
 
     public boolean isRelevant(Location from, Location to) {
