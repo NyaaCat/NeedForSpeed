@@ -102,7 +102,7 @@ public class TimerListenerInstance implements Listener {
             return;
         if (!objective.isEnabled())
             return;
-        if (List.of(GameMode.SPECTATOR, GameMode.CREATIVE).contains(event.getPlayer().getGameMode()))
+        if (event.getPlayer().getGameMode() == GameMode.SPECTATOR)
             return;
         var player = event.getPlayer();
         List<Long> progress = playerProgress.get(player.getUniqueId());
@@ -124,7 +124,7 @@ public class TimerListenerInstance implements Listener {
                 NeedForSpeed.instance.getGuidanceService().updateGuidance(player.getUniqueId(), objective.getCheck(1).getCenter(), objective.getCheck(1).getWorld());
             } else if (progress.size() == objective.getCheckRanges().size()) {
                 var timeUsedInMilliseconds = progress.getLast() - progress.getFirst();
-                var formattedTime = numberFormatter.format((progress.getLast() - progress.getFirst()) / 1000D);
+                var formattedTime = numberFormatter.format(timeUsedInMilliseconds / 1000D);
                 player.sendMessage(getLanguage().finishNotice.produce(Pair.of("groupName", objective.getName()), Pair.of("time", formattedTime)));
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BELL, SoundCategory.PLAYERS, 1f, 1f);
 

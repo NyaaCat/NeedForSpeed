@@ -1,5 +1,6 @@
 package cat.nyaa.nfs;
 
+import cat.nyaa.nfs.command.CkptCommand;
 import cat.nyaa.nfs.command.NFSCommand;
 import cat.nyaa.nfs.save.Recorder;
 import dev.jorel.commandapi.CommandAPI;
@@ -61,6 +62,7 @@ public class NeedForSpeed extends JavaPlugin{
         getServer().getPluginManager().registerEvents(guidanceService, this);
 
         getCommand("nfs").setExecutor(new NFSCommand(this));
+        getCommand("ckpt").setExecutor(new CkptCommand());
         registerCommands();
     }
 

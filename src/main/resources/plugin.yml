@@ -12,3 +12,5 @@ commands:
   nfs:
     description: command to manage checkareas.
     permission: nfs.admin
+  ckpt:
+    permission: nfs.admin

@@ -133,6 +133,7 @@ public class Recorder {
     }
 
     public List<Long> stringToLongList(String string) {
+        if(string.isEmpty()) return List.of();
         return Arrays.stream(string.split(", ")).map(Long::parseLong).collect(Collectors.toList());
     }
 
